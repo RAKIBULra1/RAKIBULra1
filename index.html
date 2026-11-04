@@ -193,9 +193,17 @@ textarea { min-height: 76px; resize: vertical; }
 select{width:100%;margin-top:6px;padding:10px 12px;font-size:16px;background:var(--surface);border:1.5px solid var(--line);border-radius:10px}
 .sendm{font-family:var(--font-display);font-weight:700;font-size:1.1rem;margin:10px 0 0}
 .numbig{font-size:1.5rem}
+input[type="password"]{width:100%;margin-top:6px;padding:10px 12px;font-size:16px;background:var(--surface);border:1.5px solid var(--line);border-radius:10px}
+.topbtns{display:flex;justify-content:space-between;align-items:center;gap:8px}
 </style><script id="data" type="application/json">{"shop": "প্রয়োজন", "tag": "ব্যবহার করুন", "wa": "01718032630", "pay": "01718032630", "fee": 10, "open": true, "etaMin": 10, "etaMax": 15, "updated": "বৃহস্পতিবার, ৫ নভেম্বর", "v": 1793822040686, "shops": [{"id": "s1", "name": "আবু বকর হোটেল ( পশ্চিম কাউনিয়া )"}, {"id": "smw1ltp4t", "name": "মুসকান হোটেল  ( পশ্চিম কাউনিয়া )"}, {"id": "smw1lu2mz", "name": "সিয়াম হোটেল ( হাওলাদার সড়ক )"}], "items": [{"id": "i1", "name": "ভাত", "desc": "প্রতি পেলেট", "price": 10, "on": true, "sid": "", "img": ""}, {"id": "imw1c7631", "name": "মুরগী মাংস", "desc": "১ পিছ", "price": 40, "on": true, "sid": "smw1ltp4t", "img": ""}, {"id": "imw2jbk7p", "name": "ডাল,  মুরগী", "desc": "", "price": 1500, "on": true, "sid": "", "img": ""}]}</script><div id="app"></div><script id="code">
 (function () {
-  var bn = function (s) { return String(s).replace(/\d/g, function (d) { return '০১২৩৪৫৬৭৮৯'[d]; }); };
+  /* ===== অ্যাডমিন পাসওয়ার্ড =====
+     পাসওয়ার্ড এখানে লেখা নেই, শুধু তার হ্যাশ (একমুখী কোড) আছে। */
+  var PW_SALT = 'c6c4b35d2c8b6309e9644cac52b0bfcf';
+  var PW_HASH = '6a5a36a120621f2ca5dedfdab90af9a5f55bf5d03fab8dc1f3de7c7b0431ccb3';
+  var PW_ITER = 200000;
+
+  var bn =function (s) { return String(s).replace(/\d/g, function (d) { return '০১২৩৪৫৬৭৮৯'[d]; }); };
   var money = function (n) { return '৳' + bn(n); };
   var esc = function (s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); };
   var months = ['জানুয়ারি', 'ফেব্রুয়ারি', 'মার্চ', 'এপ্রিল', 'মে', 'জুন', 'জুলাই', 'আগস্ট', 'সেপ্টেম্বর', 'অক্টোবর', 'নভেম্বর', 'ডিসেম্বর'];
@@ -225,7 +233,7 @@ select{width:100%;margin-top:6px;padding:10px 12px;font-size:16px;background:var
   try { DATA = norm(JSON.parse(document.getElementById('data').textContent)); } catch (e) { DATA = norm({ shop: 'আপনার দোকানের নাম' }); }
 
   var app = document.getElementById('app');
-  var state = { view: 'menu', cart: {}, owner: false, canImg: false, zoom: null, shop: null, oid: '', form: { name: '', phone: '', addr: '', note: '', method: 'cod', trx: '' }, err: '', order: null, draft: null, adminMsg: '', adminKind: 'err', refreshing: false, rmsg: '' };
+  var state = { view: 'menu', cart: {}, owner: false, canImg: false, zoom: null, shop: null, oid: '', form: { name: '', phone: '', addr: '', note: '', method: 'cod', trx: '' }, err: '', order: null, draft: null, adminMsg: '', adminKind: 'err', refreshing: false, rmsg: '', lmsg: '', lbusy: false };
   var CODE_V = 2, rTimer = null;
   var A = null, ASSETS = null, focusSel = null, lastCheck = 0;
 
@@ -383,7 +391,7 @@ function doneView() {
     var shopRows = d.shops.map(function (s, i) {
       return '<div class="srow" data-i="' + i + '"><input type="text" class="s-name" aria-label="দোকানের নাম" placeholder="দোকানের নাম" value="' + esc(s.name) + '"><button class="del" data-act="asdel" data-i="' + i + '">মুছুন</button></div>';
     }).join('');
-    return '<div class="wrap"><button class="back" data-act="aback">← বাতিল করে ফিরুন</button><h2 style="font-size:1.6rem;font-weight:800">মেনু সম্পাদনা</h2>' +
+    return '<div class="wrap"><div class="topbtns"><button class="back" data-act="aback">← বাতিল করে ফিরুন</button><button class="ghost" data-act="alogout">লগআউট</button></div><h2 style="font-size:1.6rem;font-weight:800">মেনু সম্পাদনা</h2>' +
       '<div class="sec"><h2>অর্ডার সুইচ</h2>' +
       '<div class="sw" role="group" aria-label="অর্ডার সুইচ"><button type="button" class="swb on-open' + (isOpen ? ' act' : '') + '" data-act="aopen" aria-pressed="' + isOpen + '">খোলা</button><button type="button" class="swb on-close' + (!isOpen ? ' act' : '') + '" data-act="aclose" aria-pressed="' + !isOpen + '">বন্ধ</button></div>' +
       '<p class="hint">বন্ধ করলে কাস্টমারের পেজে লাল বাতি ও "এখন বন্ধ রয়েছে, দয়া করে অপেক্ষা করুন" লেখা দেখাবে এবং অর্ডার করা যাবে না। বদলানোর পর নিচে "প্রকাশ করুন" চাপুন।</p></div>' +
@@ -407,8 +415,16 @@ function doneView() {
       '<p style="color:var(--muted);font-size:0.9rem">প্রকাশ করলে কাস্টমারের লিংক ও QR কোডে নতুন মেনু আর ছবি দেখাবে। লিংক বা QR বদলাতে হবে না। ছবি যোগ করার পর অবশ্যই "প্রকাশ করুন" চাপুন।</p></div>';
   }
 
+  /* Admin sign-in screen. The editor is not shown until the password is right. */
+  function loginView() {
+    return '<div class="wrap"><button class="back" data-act="lback">← কাস্টমার পেজে ফিরুন</button><h2 style="font-size:1.6rem;font-weight:800">অ্যাডমিন লগইন</h2>' +
+      '<label class="f" for="l-pass">পাসওয়ার্ড<input id="l-pass" type="password" autocomplete="current-password" autocapitalize="off" autocorrect="off" spellcheck="false"></label>' +
+      (state.lmsg ? '<p class="err" role="alert">' + esc(state.lmsg) + '</p>' : '') +
+      '<div class="row"><button class="primary" data-act="llogin"' + (state.lbusy ? ' disabled' : '') + '>' + (state.lbusy ? 'যাচাই হচ্ছে...' : 'লগইন') + '</button></div></div>';
+  }
+
   function render() {
-    app.innerHTML = state.view === 'menu' ? menuView() : state.view === 'pay' ? payView() : state.view === 'checkout' ? checkoutView() : state.view === 'done' ? doneView() : adminView();
+    app.innerHTML = state.view === 'menu' ? menuView() : state.view === 'pay' ? payView() : state.view === 'checkout' ? checkoutView() : state.view === 'done' ? doneView() : state.view === 'login' ? loginView() : adminView();
     if (focusSel) { var el = app.querySelector(focusSel); if (el) el.focus(); focusSel = null; }
   }
   function setAdmin(msg, kind) { state.adminMsg = msg; state.adminKind = kind; render(); }
@@ -552,7 +568,10 @@ function doneView() {
     else if (act === 'newOrder') { state.cart = {}; state.order = null; state.oid = ''; state.shop = null; state.form.trx = ''; state.form.note = ''; state.view = 'menu'; window.scrollTo(0, 0); render(); }
     else if (act === 'copymsg') { var o = state.order; copy(buildMsg(o), function () { b.textContent = 'কপি হয়েছে'; }); }
     else if (act === 'copypay') { copy(DATA.pay, function () { b.textContent = 'কপি হয়েছে'; }); }
-    else if (act === 'admin') { state.draft = JSON.parse(JSON.stringify(DATA)); state.adminMsg = ''; state.view = 'admin'; window.scrollTo(0, 0); render(); }
+    else if (act === 'admin') openAdmin();
+    else if (act === 'llogin') doLogin();
+    else if (act === 'lback') leaveAdmin();
+    else if (act === 'alogout') doLogout();
     else if (act === 'refresh') { doRefresh(); }
     else if (act === 'aback') { state.view = 'menu'; render(); }
     else if (act === 'aopen') { syncAdmin(); state.draft.open = true; render(); }
@@ -636,7 +655,54 @@ function doneView() {
   render();
   checkFresh();
 
-  function checkOwner() { if (location.hash === '#admin' && !state.owner) { state.owner = true; state.canImg = true; if (state.view === 'menu') render(); } }
+  /* ===== অ্যাডমিন লগইন ===== */
+  var pwFails = 0;
+  var hexBytes = function (h) { var a = new Uint8Array(h.length / 2); for (var i = 0; i < a.length; i++) a[i] = parseInt(h.substr(i * 2, 2), 16); return a; };
+  var toHex = function (buf) { return Array.prototype.map.call(new Uint8Array(buf), function (b) { return ('0' + b.toString(16)).slice(-2); }).join(''); };
+  async function pwDerive(pw) {
+    var key = await crypto.subtle.importKey('raw', new TextEncoder().encode(pw), 'PBKDF2', false, ['deriveBits']);
+    var bits = await crypto.subtle.deriveBits({ name: 'PBKDF2', salt: hexBytes(PW_SALT), iterations: PW_ITER, hash: 'SHA-256' }, key, 256);
+    return toHex(bits);
+  }
+  /* A successful login is remembered on this phone for 30 days, or until "লগআউট". */
+  function isAuthed() {
+    if (!PW_HASH) return true;
+    try { var s = JSON.parse(localStorage.getItem('admin-ok') || 'null'); return !!s && s.h === PW_HASH.slice(0, 16) && Date.now() - s.t < 30 * 86400000; } catch (e) { return false; }
+  }
+  function openAdmin() { state.draft = JSON.parse(JSON.stringify(DATA)); state.adminMsg = ''; state.view = 'admin'; window.scrollTo(0, 0); render(); }
+  async function doLogin() {
+    if (state.lbusy) return;
+    var pe = document.getElementById('l-pass'), pass = pe ? pe.value.trim().toLowerCase() : '';
+    if (!pass) { state.lmsg = 'পাসওয়ার্ড দিন।'; render(); return; }
+    state.lbusy = true; state.lmsg = ''; render();
+    var ok = false;
+    try { ok = (await pwDerive(pass)) === PW_HASH; } catch (e) { state.lmsg = 'এই ব্রাউজারে লগইন চালানো যাচ্ছে না। অন্য ব্রাউজারে চেষ্টা করুন।'; }
+    if (!ok && !state.lmsg) { pwFails++; await new Promise(function (r) { setTimeout(r, Math.min(pwFails, 5) * 800); }); state.lmsg = 'পাসওয়ার্ড ভুল।'; }
+    state.lbusy = false;
+    if (ok) {
+      pwFails = 0;
+      try { localStorage.setItem('admin-ok', JSON.stringify({ t: Date.now(), h: PW_HASH.slice(0, 16) })); } catch (e) {}
+      state.owner = true; state.canImg = true; openAdmin();
+    } else if (state.view === 'login') render();
+  }
+  /* Leave the admin screens and go back to what customers see. */
+  function leaveAdmin() {
+    try { history.replaceState(null, '', location.pathname + location.search); } catch (e) {}
+    state.owner = false; state.canImg = false; state.lmsg = ''; state.view = 'menu'; window.scrollTo(0, 0); render();
+  }
+  function doLogout() { try { localStorage.removeItem('admin-ok'); } catch (e) {} leaveAdmin(); }
+  app.addEventListener('keydown', function (e) { if (e.key === 'Enter' && e.target && e.target.id === 'l-pass') doLogin(); });
+
+  function checkOwner() {
+    if (location.hash === '#admin') {
+      if (isAuthed()) { if (!state.owner) { state.owner = true; state.canImg = true; if (state.view === 'menu') render(); } }
+      else if (state.view === 'menu' || state.view === 'login') { state.owner = false; state.canImg = false; state.view = 'login'; render(); }
+    } else if (state.owner || state.view === 'login') {
+      state.owner = false; state.canImg = false;
+      if (state.view === 'login' || state.view === 'admin') state.view = 'menu';
+      render();
+    }
+  }
   window.addEventListener('hashchange', checkOwner); checkOwner();
 })();
 </script></body></html>
