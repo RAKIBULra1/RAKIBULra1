@@ -180,8 +180,8 @@ textarea { min-height: 76px; resize: vertical; }
 .hero-t{font-size:clamp(1.35rem,6vw,1.8rem);font-weight:800;line-height:1.45;color:#fff}
 .hero-t .hl{color:#f5c542}
 .hero-l{list-style:none;margin:14px 0 0;padding:0;display:grid;gap:8px;font-size:1.05rem;font-weight:500}
-.hero-l li{background:#ffffff1f;border-radius:10px;padding:8px 12px}
-.hero-l b{color:#f5c542}
+.hero-l li{background:#e8a317;color:#231800;border-radius:10px;padding:8px 12px}
+.hero-l b{color:#231800;font-weight:800}
 .groc{margin-top:28px;padding:14px 14px 4px;border:2px solid #cc9a06;border-radius:16px;background:color-mix(in srgb,#f5c542 12%,var(--surface))}
 .groc-badge{display:inline-block;background:#cc9a06;color:#fff;font-family:var(--font-display);font-weight:800;font-size:1.15rem;padding:4px 14px;border-radius:999px}
 .gq{font-size:1.7rem;font-weight:800;margin-top:12px;color:#1e8a4c}
@@ -327,7 +327,7 @@ input[type="password"]{width:100%;margin-top:6px;padding:10px 12px;font-size:16p
       if (zi && zi.img) zoom = '<div class="zoom" data-act="unzoom" role="dialog" aria-label="খাবারের ছবি"><img src="' + esc(imgSrc(zi.img)) + '" alt="' + esc(zi.name) + '"><p>' + esc(zi.name) + ' · ' + money(zi.price) + '</p><small>বন্ধ করতে যেকোনো জায়গায় চাপুন</small></div>';
     }
     var hero = '<section class="hero"><h2 class="hero-t">নিত্যপ্রয়োজনীয় সকল কিছু এখন একসাথে পেতে <span class="hl">প্রয়োজন</span> ব্যবহার করুন</h2>' +
-      '<ul class="hero-l"><li>মাত্র <b>' + bn(DATA.fee) + ' টাকা</b> ডেলিভারি চার্জে আমরা পৌঁছে দিচ্ছি আপনার দরজায়</li><li>আপনার মূল্যবান সময় বাঁচান</li><li>দরকার হলে <b>প্রয়োজন</b> ব্যবহার করুন</li></ul></section>';
+      '<ul class="hero-l"><li>মাত্র <b>' + bn(DATA.fee) + ' টাকা</b> ডেলিভারি চার্জে আমরা পৌঁছে দিচ্ছি আপনার দরজায়</li><li>আপনার মূল্যবান সময় বাঁচাতে <b>প্রয়োজন</b> সবসময় আপনার পাশে</li></ul></section>';
     return '<div class="wrap">' + hero + head() + statusBlock() + '<div class="flow">দোকান → মেনু → অর্ডার → Whatsapp → Send → অর্ডার সম্পূর্ণ হয়েছে</div>' +
       '<h2 class="q">কোন হোটেল থেকে খেতে চান ?</h2><p class="bidr">' + fee + '</p>' + shops + list + groc + read + (es ? '<p class="eta-out">' + es + '</p>' : '') + '</div>' + bar + zoom;
   }
