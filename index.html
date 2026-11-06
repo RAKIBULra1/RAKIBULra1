@@ -176,6 +176,17 @@ textarea { min-height: 76px; resize: vertical; }
 .head{background:#12201a;border:0;border-radius:16px;padding:20px 16px;align-items:center}
 .brand .b1{color:var(--gold)}.brand .b2{color:#fff}
 .head .ghost{color:#fff;border-color:#ffffff66}
+.hero{margin-bottom:14px;padding:20px 16px;border-radius:16px;background:linear-gradient(160deg,#1e6b47,#12201a);color:#fff;text-align:center}
+.hero-t{font-size:clamp(1.35rem,6vw,1.8rem);font-weight:800;line-height:1.45;color:#fff}
+.hero-t .hl{color:#f5c542}
+.hero-l{list-style:none;margin:14px 0 0;padding:0;display:grid;gap:8px;font-size:1.05rem;font-weight:500}
+.hero-l li{background:#ffffff1f;border-radius:10px;padding:8px 12px}
+.hero-l b{color:#f5c542}
+.groc{margin-top:28px;padding:14px 14px 4px;border:2px solid #cc9a06;border-radius:16px;background:color-mix(in srgb,#f5c542 12%,var(--surface))}
+.groc-badge{display:inline-block;background:#cc9a06;color:#fff;font-family:var(--font-display);font-weight:800;font-size:1.15rem;padding:4px 14px;border-radius:999px}
+.gq{font-size:1.7rem;font-weight:800;margin-top:12px;color:#1e8a4c}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .gq{color:#4dd28a}}
+:root[data-theme="dark"] .gq{color:#4dd28a}
 .status{display:flex;align-items:center;gap:10px;padding:10px 14px}
 .lamp{width:16px;height:16px;border-radius:50%;flex:none;background:#22c55e;box-shadow:0 0 0 3px #22c55e55,0 0 12px #22c55e;animation:none}
 .lamp.red{background:#e53935;box-shadow:0 0 0 3px #e5393555,0 0 12px #e53935}
@@ -297,7 +308,9 @@ input[type="password"]{width:100%;margin-top:6px;padding:10px 12px;font-size:16p
 
   function menuView() {
     var t = totals(), open = DATA.open, needShop = DATA.shops.length > 0, showMenu = !needShop || !!state.shop;
-    var items = DATA.items.filter(function (it) { return !needShop || !it.sid || it.sid === state.shop; });
+    var items = DATA.items.filter(function (it) { return !it.g && (!needShop || !it.sid || it.sid === state.shop); });
+    var gitems = DATA.items.filter(function (it) { return it.g; });
+    var groc = '<div id="groc-sec" class="groc"><div class="groc-badge">🛒 মুদি মালামাল</div><h2 class="gq">মুদি দোকান থেকে কি কিনতে চান ?</h2>' + (gitems.length ? '<ul class="items">' + gitems.map(itemRow).join('') + '</ul>' : '<p class="empty">মুদি মালামালের তালিকা শীঘ্রই যোগ করা হবে।</p>') + '</div>';
     var shops = needShop ? '<ul class="shops">' + DATA.shops.map(function (s) {
       var on = s.id === state.shop;
       return '<li><button class="shopbtn' + (on ? ' sel' : '') + '" data-act="pickshop" data-id="' + esc(s.id) + '" aria-pressed="' + on + '"><span class="sn">' + esc(s.name) + '</span><span class="go" aria-hidden="true">' + (on ? '✓' : '→') + '</span></button></li>';
@@ -306,15 +319,17 @@ input[type="password"]{width:100%;margin-top:6px;padding:10px 12px;font-size:16p
     var fee = Number(DATA.fee) > 0 ? 'বি:দ্র: ডেলিভারি চার্জ মাত্র ' + bn(DATA.fee) + ' টাকা' : 'বি:দ্র: ডেলিভারি চার্জ নেই';
     var read = '<div class="read"><h2>পড়ুন</h2><p>দোকান সিলেক্ট করলে আপনার সামনে খাবার মেনু আসবে, তারপর সেখান থেকে খাবার সিলেক্ট করে সরাসরি অর্ডার বাটন এ ক্লিক করুন, অর্ডারটি সরাসরি WhatsApp ওপেন করে সেন্ড করে পাঠিয়ে দিন</p></div>';
     var es = etaSentence(DATA.etaMin, DATA.etaMax);
-    var bar = showMenu ? '<div class="bar"><div class="bar-in"><div class="sum"><b>' + money(t.sub) + '</b><span>' + (!open ? 'এখন অর্ডার নেওয়া হচ্ছে না' : (t.cnt ? bn(t.cnt) + ' পিস · অর্ডার বাটন চাপুন' : 'কিছু নির্বাচন করুন')) + '</span></div>' +
+    var bar = (showMenu || gitems.length) ? '<div class="bar"><div class="bar-in"><div class="sum"><b>' + money(t.sub) + '</b><span>' + (!open ? 'এখন অর্ডার নেওয়া হচ্ছে না' : (t.cnt ? bn(t.cnt) + ' পিস · অর্ডার বাটন চাপুন' : 'কিছু নির্বাচন করুন')) + '</span></div>' +
       '<button class="primary" data-act="checkout"' + (t.cnt && open ? '' : ' disabled') + '>' + (open ? 'অর্ডার করুন' : 'অর্ডার বন্ধ') + '</button></div></div>' : '';
     var zoom = '';
     if (state.zoom) {
       var zi = DATA.items.filter(function (x) { return x.id === state.zoom; })[0];
       if (zi && zi.img) zoom = '<div class="zoom" data-act="unzoom" role="dialog" aria-label="খাবারের ছবি"><img src="' + esc(imgSrc(zi.img)) + '" alt="' + esc(zi.name) + '"><p>' + esc(zi.name) + ' · ' + money(zi.price) + '</p><small>বন্ধ করতে যেকোনো জায়গায় চাপুন</small></div>';
     }
-    return '<div class="wrap">' + head() + statusBlock() + '<div class="flow">দোকান → মেনু → অর্ডার → Whatsapp → Send → অর্ডার সম্পূর্ণ হয়েছে</div>' +
-      '<h2 class="q">কোন হোটেল থেকে খেতে চান ?</h2><p class="bidr">' + fee + '</p>' + shops + list + read + (es ? '<p class="eta-out">' + es + '</p>' : '') + '</div>' + bar + zoom;
+    var hero = '<section class="hero"><h2 class="hero-t">নিত্যপ্রয়োজনীয় সকল কিছু এখন একসাথে পেতে <span class="hl">প্রয়োজন</span> ব্যবহার করুন</h2>' +
+      '<ul class="hero-l"><li>মাত্র <b>' + bn(DATA.fee) + ' টাকা</b> ডেলিভারি চার্জে আমরা পৌঁছে দিচ্ছি আপনার দরজায়</li><li>আপনার মূল্যবান সময় বাঁচান</li><li>দরকার হলে <b>প্রয়োজন</b> ব্যবহার করুন</li></ul></section>';
+    return '<div class="wrap">' + hero + head() + statusBlock() + '<div class="flow">দোকান → মেনু → অর্ডার → Whatsapp → Send → অর্ডার সম্পূর্ণ হয়েছে</div>' +
+      '<h2 class="q">কোন হোটেল থেকে খেতে চান ?</h2><p class="bidr">' + fee + '</p>' + shops + list + groc + read + (es ? '<p class="eta-out">' + es + '</p>' : '') + '</div>' + bar + zoom;
   }
 
   function payView() {
@@ -376,18 +391,20 @@ function doneView() {
 
   function adminView() {
     var d = state.draft, isOpen = d.open !== false;
-    var rows = d.items.map(function (it, i) {
+    var rowFn = function (it, i) {
       var thumb = it.img ? '<img src="' + esc(imgSrc(it.img)) + '" alt="">' : 'ছবি নেই';
       var photo = state.canImg
         ? '<div class="photo"><div class="thumb">' + thumb + '</div><div class="pb"><label class="pick" for="a-file-' + i + '">' + (it.img ? 'ছবি বদলান' : 'ছবি যোগ করুন') + '</label><input type="file" id="a-file-' + i + '" class="a-file vh" data-i="' + i + '" accept="image/*">' +
           (it.img ? '<button class="del" data-act="aimgdel" data-i="' + i + '">ছবি সরান</button>' : '') + '</div></div>'
         : '<div class="photo"><div class="thumb">' + thumb + '</div><span class="hint">ছবি আপলোড এই ভিউতে চালু নেই। মালিকের অ্যাকাউন্টে সাইন-ইন করা অবস্থায় পেজটি খুলুন।</span></div>';
-      var sidSel = '<label class="f">কোন দোকানের খাবার<select class="a-sid"><option value="">সব দোকান</option>' + d.shops.map(function (s) { return '<option value="' + esc(s.id) + '"' + (it.sid === s.id ? ' selected' : '') + '>' + esc(s.name || 'নাম নেই') + '</option>'; }).join('') + '</select></label>';
+      var sidSel = it.g ? '' : '<label class="f">কোন দোকানের খাবার<select class="a-sid"><option value="">সব দোকান</option>' + d.shops.map(function (s) { return '<option value="' + esc(s.id) + '"' + (it.sid === s.id ? ' selected' : '') + '>' + esc(s.name || 'নাম নেই') + '</option>'; }).join('') + '</select></label>';
       return '<div class="arow" data-i="' + i + '"><label class="f" style="margin-top:0">খাবারের নাম<input type="text" class="a-name" value="' + esc(it.name) + '"></label>' +
         '<div class="two"><label class="f">বিবরণ<input type="text" class="a-desc" value="' + esc(it.desc) + '"></label><label class="f">দাম (৳)<input type="number" inputmode="numeric" min="0" class="a-price" value="' + esc(it.price) + '"></label></div>' +
         sidSel + photo +
         '<div class="foot"><label class="chk"><input type="checkbox" class="a-on"' + (it.on ? ' checked' : '') + '> আজ পাওয়া যাবে</label><button class="del" data-act="adel" data-i="' + i + '">মুছুন</button></div></div>';
-    }).join('');
+    };
+    var rows = d.items.map(function (it, i) { return it.g ? '' : rowFn(it, i); }).join('');
+    var grows = d.items.map(function (it, i) { return it.g ? rowFn(it, i) : ''; }).join('');
     var shopRows = d.shops.map(function (s, i) {
       return '<div class="srow" data-i="' + i + '"><input type="text" class="s-name" aria-label="দোকানের নাম" placeholder="দোকানের নাম" value="' + esc(s.name) + '"><button class="del" data-act="asdel" data-i="' + i + '">মুছুন</button></div>';
     }).join('');
@@ -410,6 +427,7 @@ function doneView() {
       '<label class="f" for="a-pay">বিকাশ / নগদ নম্বর <small>(অগ্রিম পেমেন্টের জন্য, না দিলে শুধু ক্যাশ অন ডেলিভারি থাকবে)</small><input id="a-pay" type="tel" inputmode="tel" value="' + esc(d.pay) + '"></label>' +
       '<label class="f" for="a-fee">ডেলিভারি চার্জ (৳)<input id="a-fee" type="number" inputmode="numeric" min="0" value="' + esc(d.fee) + '"></label></div>' +
       '<div class="sec"><h2>আজকের খাবার</h2>' + rows + '<div class="row"><button class="secondary" data-act="aadd">+ নতুন খাবার যোগ করুন</button></div></div>' +
+      '<div class="sec"><h2>🛒 মুদি মালামাল</h2><p class="hint" style="margin-top:0">"কি কিনতে চান ?" অংশে এগুলো দেখাবে। দোকান বাছাই লাগবে না।</p>' + grows + '<div class="row"><button class="secondary" data-act="agadd">+ মুদি আইটেম যোগ করুন</button></div></div>' +
       (state.adminMsg ? '<p class="' + esc(state.adminKind) + '" role="status">' + esc(state.adminMsg) + '</p>' : '') +
       '<div class="row"><button class="primary" data-act="apublish">মেনু ফাইল তৈরি করুন</button></div>' +
       '<p style="color:var(--muted);font-size:0.9rem">প্রকাশ করলে কাস্টমারের লিংক ও QR কোডে নতুন মেনু আর ছবি দেখাবে। লিংক বা QR বদলাতে হবে না। ছবি যোগ করার পর অবশ্যই "প্রকাশ করুন" চাপুন।</p></div>';
@@ -451,7 +469,7 @@ function doneView() {
       var it = d.items[Number(r.getAttribute('data-i'))];
       if (!it) return;
       it.name = r.querySelector('.a-name').value; it.desc = r.querySelector('.a-desc').value;
-      it.price = Number(r.querySelector('.a-price').value) || 0; it.on = r.querySelector('.a-on').checked; it.sid = r.querySelector('.a-sid').value;
+      it.price = Number(r.querySelector('.a-price').value) || 0; it.on = r.querySelector('.a-on').checked; var sd = r.querySelector('.a-sid'); if (sd) it.sid = sd.value;
     });
   }
 
@@ -501,7 +519,7 @@ function doneView() {
     if (emax < emin) emax = emin;
     var data = { shop: d.shop.trim() || 'আপনার দোকানের নাম', tag: d.tag.trim(), wa: d.wa.trim(), pay: d.pay.trim(), fee: d.fee, open: d.open !== false, etaMin: emin, etaMax: emax, updated: todayLabel(), v: Date.now(),
       shops: d.shops.filter(function (s) { return s.name.trim(); }).map(function (s) { return { id: s.id, name: s.name.trim() }; }),
-      items: d.items.filter(function (it) { return it.name.trim() && it.price > 0; }).map(function (it) { return { id: it.id, name: it.name.trim(), desc: it.desc.trim(), price: it.price, on: !!it.on, sid: it.sid || '', img: it.img || '' }; }) };
+      items: d.items.filter(function (it) { return it.name.trim() && it.price > 0; }).map(function (it) { return { id: it.id, name: it.name.trim(), desc: it.desc.trim(), price: it.price, on: !!it.on, sid: it.sid || '', img: it.img || '', g: !!it.g }; }) };
     if (data.wa && !validBD(normPhone(data.wa)) && waNum(data.wa).length < 10) { setAdmin('WhatsApp নম্বরটি সঠিক নয়। 01XXXXXXXXX ফরম্যাটে দিন।', 'err'); return; }
     try {
       var blob = new Blob([JSON.stringify(data, null, 1)], { type: 'application/json' });
@@ -524,7 +542,7 @@ function doneView() {
     var fail = function (m) { e.preventDefault(); state.err = m; render(); };
     if (!DATA.open) return fail('এখন খাবার ডেলিভারি দেওয়ার বন্ধ রয়েছে।');
     if (!t.cnt) return fail('আগে খাবার নির্বাচন করুন।');
-    if (DATA.shops.length && !shopById(state.shop)) return fail('দোকান নির্বাচন করুন।');
+    if (DATA.shops.length && t.lines.some(function (l) { return !l.it.g; }) && !shopById(state.shop)) return fail('দোকান নির্বাচন করুন।');
     if (!f.name.trim()) return fail('আপনার নাম লিখুন।');
     if (!validBD(ph)) return fail('মোবাইল নম্বরটি সঠিক নয়। 01XXXXXXXXX ফরম্যাটে দিন।');
     if (!f.addr.trim()) return fail('ডেলিভারির ঠিকানা লিখুন।');
@@ -579,6 +597,7 @@ function doneView() {
     else if (act === 'asadd') { syncAdmin(); state.draft.shops.push({ id: 's' + Date.now().toString(36), name: '' }); render(); var sr = app.querySelectorAll('.srow .s-name'); if (sr.length) sr[sr.length - 1].focus(); }
     else if (act === 'asdel') { syncAdmin(); state.draft.shops.splice(Number(b.getAttribute('data-i')), 1); render(); }
     else if (act === 'aadd') { syncAdmin(); state.draft.items.push({ id: 'i' + Date.now().toString(36), name: '', desc: '', price: 0, on: true, sid: '', img: '' }); render(); var rows = app.querySelectorAll('.arow .a-name'); if (rows.length) rows[rows.length - 1].focus(); }
+    else if (act === 'agadd') { syncAdmin(); state.draft.items.push({ id: 'g' + Date.now().toString(36), name: '', desc: '', price: 0, on: true, sid: '', img: '', g: true }); render(); var gr = app.querySelectorAll('.arow .a-name'); if (gr.length) gr[gr.length - 1].focus(); }
     else if (act === 'adel') { syncAdmin(); state.draft.items.splice(Number(b.getAttribute('data-i')), 1); render(); }
     else if (act === 'aimgdel') { syncAdmin(); var di = state.draft.items[Number(b.getAttribute('data-i'))]; if (di) di.img = ''; setAdmin('ছবি সরানো হয়েছে! "প্রকাশ করুন" চাপলে কাস্টমাররা দেখবে।', 'ok'); }
     else if (act === 'apublish') publish();
@@ -638,7 +657,8 @@ function doneView() {
       if (!r.ok) return 'fail';
       var nd = norm(await r.json());
       if (state.view === 'admin') return 'same';
-      var changed = Number(nd.v || 0) !== Number(DATA.v || 0);
+      var strip = function (o) { var c = JSON.parse(JSON.stringify(o)); delete c.v; delete c.updated; return JSON.stringify(c); };
+      var changed = Number(nd.v || 0) !== Number(DATA.v || 0) || strip(nd) !== strip(DATA);
       if (changed) {
         DATA = nd;
         if (!DATA.open && (state.view === 'pay' || state.view === 'checkout')) { if (state.view === 'checkout') readForm(); state.view = 'menu'; render(); }
